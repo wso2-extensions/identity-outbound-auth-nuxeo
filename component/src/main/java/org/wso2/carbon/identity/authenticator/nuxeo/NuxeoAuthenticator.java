@@ -119,7 +119,6 @@ public class NuxeoAuthenticator extends OpenIDConnectAuthenticator implements Fe
      */
     @Override
     public String getClaimDialectURI() {
-
         return NuxeoAuthenticatorConstants.CLAIM_DIALECT_URI;
     }
 
@@ -207,13 +206,16 @@ public class NuxeoAuthenticator extends OpenIDConnectAuthenticator implements Fe
             OAuthClientResponse oAuthResponse = getResponseOauth(oAuthClient, accessRequest);
             String accessToken = oAuthResponse.getParam(OIDCAuthenticatorConstants.ACCESS_TOKEN);
             String loggedInUserInfo = getUserInfoJson(userInfoUrl, accessToken);
+            if (loggedInUserInfo.isEmpty()) {
+                throw new AuthenticationFailedException("Getting empty or null value for logged in user info from " +
+                        "a user info endpoint: " + userInfoUrl);
+            }
+            Object loggedInUserID = JSONUtils.parseJSON(loggedInUserInfo).get(NuxeoAuthenticatorConstants.
+                    LOGGED_IN_USER_IDENTIFIER);
             claims = mapUserInfo(loggedInUserInfo);
             authenticatedUserObj = AuthenticatedUser.createFederateAuthenticatedUserFromSubjectIdentifier(
-                    String.valueOf(JSONUtils.parseJSON(loggedInUserInfo).
-                            get(NuxeoAuthenticatorConstants.LOGGED_IN_USER_IDENTIFIER)));
-            authenticatedUserObj.setAuthenticatedSubjectIdentifier(
-                    String.valueOf(JSONUtils.parseJSON(loggedInUserInfo).
-                            get(NuxeoAuthenticatorConstants.LOGGED_IN_USER_IDENTIFIER)));
+                    String.valueOf(loggedInUserID));
+            authenticatedUserObj.setAuthenticatedSubjectIdentifier(String.valueOf(loggedInUserID));
             authenticatedUserObj.setUserAttributes(claims);
             context.setSubject(authenticatedUserObj);
         } catch (OAuthProblemException e) {
@@ -271,10 +273,9 @@ public class NuxeoAuthenticator extends OpenIDConnectAuthenticator implements Fe
                     .setClientId(clientId).setClientSecret(clientSecret).setRedirectURI(callbackurl).setCode(code)
                     .buildBodyMessage();
         } catch (OAuthSystemException e) {
-            throw new AuthenticationFailedException("Communication errors occurred between the OAuth Recourse Server " +
-                    "and the OAuth Authorization Server when all the parameters[client_Id : " + clientId +
-                    " ,client_Secret, token_End_Point: " + tokenEndPoint + " and callbackurl: " + callbackurl +
-                    "] are built a Form-Encoded Body Parameter." , e);
+            throw new AuthenticationFailedException("Error occurred while building the token request with " +
+                    "the parameters are client_Id: " + clientId + " ,client_Secret, token_End_Point: " + tokenEndPoint +
+                    " and callback URL: " + callbackurl, e);
         }
         return accessRequest;
     }
@@ -301,7 +302,7 @@ public class NuxeoAuthenticator extends OpenIDConnectAuthenticator implements Fe
             httpget.setHeader(NuxeoAuthenticatorConstants.AUTHORIZATION,
                     NuxeoAuthenticatorConstants.AUTHENTICATION_BEARER + accessToken);
             result = new StringBuilder();
-            statusCode=httpclient.execute(httpget).getStatusLine().getStatusCode();
+            statusCode = httpclient.execute(httpget).getStatusLine().getStatusCode();
             reader = new BufferedReader(new InputStreamReader(httpclient.execute(httpget).getEntity().getContent()));
             while ((line = reader.readLine()) != null) {
                 result.append(line);
@@ -313,21 +314,18 @@ public class NuxeoAuthenticator extends OpenIDConnectAuthenticator implements Fe
                 return result.toString();
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug("Couldn't get the successful response while getting the " +
-                            "UserInfo for the logged in User. Status code: " + statusCode + " and Response: " +
-                            result.toString());
+                    log.debug("Unable to get a successful response while getting UserInfo for the logged in User. " +
+                            "Status code: " + statusCode + " and Response: " + result.toString());
                 }
-                throw new AuthenticationFailedException(" Couldn't get the successful response while getting the " +
+                throw new AuthenticationFailedException(" Unable to get a successful response while getting " +
                         "UserInfo for the logged in User. Status code: " + statusCode + " and Response: " +
                         result.toString());
             }
         } catch (ClientProtocolException e) {
-            throw new AuthenticationFailedException("Exception occurred from the Malformed url while " +
-                    "getting the user Information. Malformed url: " + httpget.getURI(), e);
+            throw new AuthenticationFailedException("Exception occurred while invoking the URL:" + httpget.getURI(), e);
         } catch (IOException e) {
-            throw new AuthenticationFailedException("Exception occurred from the connection was aborted. " +
-                    "(eg. invalid hostname, no server listening or internet connection was lost) " +
-                    "while getting the UserInfo. ", e);
+            throw new AuthenticationFailedException(" I/O error occurred while invoking the user info endpoint: " +
+                    httpget.getURI(), e);
         }
     }
 
@@ -339,63 +337,47 @@ public class NuxeoAuthenticator extends OpenIDConnectAuthenticator implements Fe
      */
     protected Map<ClaimMapping, String> mapUserInfo(String userInfo) {
 
-        if (userInfo.isEmpty()) {
-            if (log.isDebugEnabled()) {
-                log.debug("Couldn't get the User info: " + userInfo + " to do the claim mapping.");
-            }
-            log.error("Couldn't get the User info: " + userInfo + " to do the claim mapping.");
-        }
         Map<ClaimMapping, String> claims = new HashMap<>();
         JSONObject userInfoInJsonObj = new JSONObject(userInfo);
         Iterator parentKey = userInfoInJsonObj.keys();
+        String claimsDialectUri = getClaimDialectURI();
         while (parentKey.hasNext()) {
             String eachParentkey = (String) parentKey.next();
             Object parentData = userInfoInJsonObj.get(eachParentkey);
-            if (parentData instanceof JSONObject) {
+            if (parentData instanceof JSONObject && eachParentkey.equals("properties")) {
                 Iterator childKey = ((JSONObject) parentData).keys();
                 while (childKey.hasNext()) {
                     String eachChildKey = (String) childKey.next();
                     Object childData = ((JSONObject) parentData).get(eachChildKey);
-                    if (childData instanceof JSONArray) {
+                    if (childData instanceof JSONArray && eachChildKey.equals("groups")) {
                         StringJoiner data = new StringJoiner(",");
                         for (int i = 0; i < ((JSONArray) childData).length(); i++) {
                             data.add(((JSONArray) childData).get(i).toString());
                         }
                         String result = data.toString();
-                        claims.put(ClaimMapping.build(eachChildKey, eachChildKey, null, false),
-                                "[" + result + "]");
+                        claims.put(ClaimMapping.build(claimsDialectUri + eachChildKey,
+                                claimsDialectUri + eachChildKey, null, false), result);
                         if (log.isDebugEnabled()) {
-                            log.debug("Adding claims from the end-point data mapping: " + eachChildKey + " - " +
-                                    "[" + result + "]");
+                            log.debug("Adding claims from the end-point data mapping: " +
+                                    claimsDialectUri + eachChildKey + " - " + result);
                         }
                     } else {
-                        claims.put(ClaimMapping.build(eachChildKey, eachChildKey, null, false),
+                        claims.put(ClaimMapping.build(claimsDialectUri + eachChildKey,
+                                claimsDialectUri + eachChildKey, null, false),
                                 childData.toString());
                         if (log.isDebugEnabled()) {
-                            log.debug("Adding claims from the end-point data mapping: " + eachParentkey + " - " +
-                                    childData.toString());
+                            log.debug("Adding claims from the end-point data mapping: " + claimsDialectUri +
+                                    eachParentkey + " - " + childData.toString());
                         }
                     }
                 }
-            } else if (parentData instanceof JSONArray) {
-                JSONArray childData = ((JSONArray) parentData);
-                StringJoiner data = new StringJoiner(",");
-                for (int i = 0; i < childData.length(); i++) {
-                    data.add(childData.getJSONObject(i).toString());
-                }
-                String result = data.toString();
-                claims.put(ClaimMapping.build(eachParentkey, eachParentkey, null, false), "[" +
-                        result + "]");
-                if (log.isDebugEnabled()) {
-                    log.debug("Adding claims from the end-point data mapping: " + eachParentkey + " - " + "[" +
-                            result + "]");
-                }
             } else {
-                claims.put(ClaimMapping.build(eachParentkey, eachParentkey, null, false),
+                claims.put(ClaimMapping.build(claimsDialectUri + eachParentkey,
+                        claimsDialectUri + eachParentkey, null, false),
                         parentData.toString());
                 if (log.isDebugEnabled()) {
-                    log.debug("Adding claims from the end-point data mapping: " + eachParentkey + " - " +
-                            parentData.toString());
+                    log.debug("Adding claims from the end-point data mapping: " +
+                            claimsDialectUri + eachParentkey + " - " + parentData.toString());
                 }
             }
         }

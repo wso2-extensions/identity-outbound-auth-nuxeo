@@ -39,7 +39,7 @@ public class NuxeoAuthenticatorConstants {
     public static final String NUXEO_USERINFO_ENDPOINT = "/nuxeo/api/v1/me";
     //Nuxeo sever URL prefix
     public static final String NUXEO_SERVER_URL = "Nuxeo Server URL";
-    public static final String CLAIM_DIALECT_URI = "http://wso2.org/nuxeo/claims";
+    public static final String CLAIM_DIALECT_URI = "http://wso2.org/nuxeo/claims/";
 
     NuxeoAuthenticatorConstants() {
     }
