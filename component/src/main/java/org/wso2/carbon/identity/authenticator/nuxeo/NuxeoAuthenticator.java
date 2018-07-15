@@ -317,14 +317,15 @@ public class NuxeoAuthenticator extends OpenIDConnectAuthenticator implements Fe
                     log.debug("Unable to get a successful response while getting UserInfo for the logged in User. " +
                             "Status code: " + statusCode + " and Response: " + result.toString());
                 }
-                throw new AuthenticationFailedException(" Unable to get a successful response while getting " +
+                throw new AuthenticationFailedException("Unable to get a successful response while getting " +
                         "UserInfo for the logged in User. Status code: " + statusCode + " and Response: " +
                         result.toString());
             }
         } catch (ClientProtocolException e) {
-            throw new AuthenticationFailedException("Exception occurred while invoking the URL:" + httpget.getURI(), e);
+            throw new AuthenticationFailedException("Exception occurred while invoking the URL: " +
+                    httpget.getURI(), e);
         } catch (IOException e) {
-            throw new AuthenticationFailedException(" I/O error occurred while invoking the user info endpoint: " +
+            throw new AuthenticationFailedException("I/O error occurred while invoking the user info endpoint: " +
                     httpget.getURI(), e);
         }
     }
