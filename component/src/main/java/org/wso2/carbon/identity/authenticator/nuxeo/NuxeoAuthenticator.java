@@ -189,8 +189,8 @@ public class NuxeoAuthenticator extends OpenIDConnectAuthenticator implements Fe
                                                  AuthenticationContext context) throws AuthenticationFailedException {
 
         String clientId = null;
+        Map<String, String> authenticatorProperties = context.getAuthenticatorProperties();
         try {
-            Map<String, String> authenticatorProperties = context.getAuthenticatorProperties();
             clientId = authenticatorProperties.get(OIDCAuthenticatorConstants.CLIENT_ID);
             String clientSecret = authenticatorProperties.get(OIDCAuthenticatorConstants.CLIENT_SECRET);
             String tokenEndPoint = getTokenEndpoint(authenticatorProperties);
@@ -203,13 +203,9 @@ public class NuxeoAuthenticator extends OpenIDConnectAuthenticator implements Fe
             OAuthClientRequest accessRequest = getAccessRequest(tokenEndPoint, clientId, code, clientSecret,
                     callbackUrl);
             OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
-            OAuthClientResponse oAuthResponse = getResponseOauth(oAuthClient, accessRequest);
+            OAuthClientResponse oAuthResponse = getResponseOauth(oAuthClient, accessRequest, context);
             String accessToken = oAuthResponse.getParam(OIDCAuthenticatorConstants.ACCESS_TOKEN);
             String loggedInUserInfo = getUserInfoJson(userInfoUrl, accessToken);
-            if (loggedInUserInfo.isEmpty()) {
-                throw new AuthenticationFailedException("Getting empty or null value for logged in user info from " +
-                        "a user info endpoint: " + userInfoUrl);
-            }
             Object loggedInUserID = JSONUtils.parseJSON(loggedInUserInfo).get(NuxeoAuthenticatorConstants.
                     LOGGED_IN_USER_IDENTIFIER);
             claims = mapUserInfo(loggedInUserInfo);
@@ -219,9 +215,8 @@ public class NuxeoAuthenticator extends OpenIDConnectAuthenticator implements Fe
             authenticatedUserObj.setUserAttributes(claims);
             context.setSubject(authenticatedUserObj);
         } catch (OAuthProblemException e) {
-            throw new AuthenticationFailedException("Exception while getting the oAuth code from HttpServletRequest "
-                    + "for the client: " + clientId + ". Check whether you used the client_Secret value that " +
-                    "associate with clien_ID: " + clientId, e);
+            throw new AuthenticationFailedException("Exception occurred while getting the oAuth code for the client: " +
+                    clientId + " from the endpoint: " + getAuthorizationServerEndpoint(authenticatorProperties), e);
         }
     }
 
@@ -232,24 +227,20 @@ public class NuxeoAuthenticator extends OpenIDConnectAuthenticator implements Fe
      * @param accessRequest the AccessRequest.
      * @return Response for access token from service provider.
      */
-    private OAuthClientResponse getResponseOauth(OAuthClient oAuthClient, OAuthClientRequest accessRequest)
-            throws AuthenticationFailedException {
+    private OAuthClientResponse getResponseOauth(OAuthClient oAuthClient, OAuthClientRequest accessRequest,
+                                                 AuthenticationContext context) throws AuthenticationFailedException {
 
         OAuthClientResponse oAuthResponse;
+        String clientId = context.getAuthenticatorProperties().get(OIDCAuthenticatorConstants.CLIENT_ID);
         try {
             oAuthResponse = oAuthClient.accessToken(accessRequest);
-        } catch (OAuthProblemException e) {
+        } catch (OAuthProblemException | OAuthSystemException e) {
             if (log.isDebugEnabled()) {
-                log.debug("Exception occurred from the invalid client_ID or Client_Secret: "
-                        + accessRequest.getBody() + " while getting the OAuth response for access token.");
+                log.debug("Exception occurred while getting the access token request for client_ID: " +
+                        clientId + " from token endpoint: " + accessRequest.getLocationUri());
             }
-            throw new AuthenticationFailedException("Exception occurred from the invalid client_ID or Client_Secret " +
-                    "which are used to get the OAuth response from the URL : " + accessRequest.getLocationUri() +
-                    " Check the client_Secret value that associate with client_ID. ", e);
-        } catch (OAuthSystemException e) {
-            throw new AuthenticationFailedException("Communication errors between the OAuth Recourse Server and " +
-                    "the OAuth Authorization Server while getting the OAuth response form the URL: " +
-                    accessRequest.getLocationUri(), e);
+            throw new AuthenticationFailedException("Exception occurred while getting the access token request for " +
+                    "client_ID: " + clientId + " from token endpoint: " + accessRequest.getLocationUri(), e);
         }
         return oAuthResponse;
     }
