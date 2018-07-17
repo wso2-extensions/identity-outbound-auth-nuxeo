@@ -1,61 +1,68 @@
 # Configuring Nuxeo Authenticator
 
-This topic provides instructions on how to configure the Nuxeo authenticator and the WSO2 Identity Server and demonstrates this integration using a sample app. 
+The topics in this page provide instructions on how to configure the Nuxeo authenticator with WSO2 Identity Server.Here, a sample app  is used to demonstrate the integration. 
  
  ````
- This is tested with the Nuxeo Server version 10.1 and Nuxeo Authenticator is supported by Identity Server 5.5.0. 
+  * Nuxeo Authenticator is supported with Identity Server 5.5.0. 
+  * Configuring the Nuxeo authenticator is tested with Nuxeo Server version 10.1.
  ````
+ 
+Follow the the instructions in the topics below to configure the Nuxeo authenticator with WSO2 Identity Server:
  
 * [Deploying Nuxeo artifacts](#deploying-nuxeo-artifacts)
 * [Configuring the Nuxeo App](#configuring-the-nuxeo-app)
 * [Deploying travelocity.com sample app](#deploying-travelocitycom-sample-app)
 * [Configuring the identity provider](#configuring-the-identity-provider)
 * [Configuring the service provider](#configuring-the-service-provider)
-* [Configuring claims](configuring-claims)
+* [Configuring claims](#configuring-claims)
 * [Configuring requested claims for travelocity.com](#configuring-requested-claims-for-travelocitycom)
 * [Testing the sample](#testing-the-sample)
 
 ### Deploying Nuxeo artifacts
 
 * Download the artifacts for this authenticator from the [store](https://store.wso2.com/store/assets/isconnector/details/c7003ffb-18a1-48ed-9a99-6274796fa978).
-* Place the org.wso2.carbon.identity.authenticator.nuxeo-x.x.x.jar file into the <IS_HOME>/repository/components/dropins directory.
+* Copy the downloaded org.wso2.carbon.identity.authenticator.nuxeo-x.x.x.jar file to the <IS_HOME>/repository/components/dropins directory.
 
-> If you want to upgrade the Nuxeo Authenticator (.jar) in your IS pack, please refer [upgrade instructions](https://docs.wso2.com/display/ISCONNECTORS/Upgrading+an+Authenticator).
+> If you want to upgrade the Nuxeo Authenticator (.jar) that is packaged with your WSO2 IS distribution to the latest, see [upgrade instructions](https://docs.wso2.com/display/ISCONNECTORS/Upgrading+an+Authenticator).
  
- ### Configuring the Nuxeo App
-1. Go to [https://www.nuxeo.com/downloads/](https://www.nuxeo.com/downloads/), download the server and unzip the archive.
-2. Use the following command to install JSF UI addon on your server.
-        
-      **./nuxeoctl mp-install nuxeo-jsf-ui**
-   
+ ### Configuring the Nuxeo application
+1. Go to [https://www.nuxeo.com/downloads/](https://www.nuxeo.com/downloads/), download the server and unzip the archive.The path to the sever will be referred to as <NUEXO_HOME> throughout this page.
+2. Navigate to the <NUEXO_HOME>/bin directory and use the following command to install the JSF UI addon on your server.
+      ````  
+      ./nuxeoctl mp-install nuxeo-jsf-ui
+      ````
    For more information please refer [https://doc.nuxeo.com/nxdoc/installing-a-new-package-on-your-instance/](https://doc.nuxeo.com/nxdoc/installing-a-new-package-on-your-instance/)
-3. Start the Nuxeo server using the bellow commands.
-        
-      **$ chmod +x ./bin/nuxeoctl**
-      
-      **$ ./bin/nuxeoctl start**
-4. After the server start, follow the consequence instructions to setup the nuxeo server.
-5. Go to the Nuxeo Platform web interface( Login the [http://localhost:8080/nuxeo/jsf](http://localhost:8080/nuxeo/jsf) as an **Administrator**), then browse to the **Admin Center > Cloud Services > Consumers** tab.
-6. Provide a **name**, a **client ID**, a **client secret**, **redirect URI**(Use **https://localhost:9443/commonauth**) and **save**.
+3. Start the Nuxeo server using the commands given below:
+     ````   
+      $ chmod +x ./bin/nuxeoctl
+      $ ./bin/nuxeoctl start
+      ````
+4. Once the server starts, follow the steps below to setup the nuxeo server.
+5. Go to the [http://localhost:8080/nuxeo/jsf](http://localhost:8080/nuxeo/jsf) 
+    1. and sign in with **Administrator/Administrator** credentials.
+    2. Click **Admin**, then click **Cloud Services**,and then click the **Consumers** tab.
+    3. Click **Add** under the **OAuth2 Clients** section.
+    4. Specify values for the **Name**, **Client ID**, **Client Secret**, and **Redirect URI***. You can use **https://localhost:9443/commonauth** as the **Redirect URI**
+    5. Click **Create**. 
 
-    ![alt text](images/im1.png) 
+       ![alt text](images/im1.png) 
 
-Now you have configured the Nuxeo App. 
+Now you have configured the Nuxeo application. 
 
-### Deploying travelocity.com sample app
+Next let's deploy the travelocity.com sample app so that it can be used in this scenario.
+
+### Deploying the travelocity.com sample app
     
-* The next step is to deploy the travelocity.com sample app in order to use it in this scenario.
-
-* To configure this, see [deploying travelocity.com sample app](https://docs.wso2.com/display/ISCONNECTORS/Deploying+the+Sample+App).
+To download and deploy the travelocity.com sample application,follow the instructions in [deploying travelocity.com sample app](https://docs.wso2.com/display/ISCONNECTORS/Deploying+the+Sample+App).
 
 ````
-If you are running the nuxeo server and apache tomcat in  the same port (eg: 8080), then you need to change the port.
-Follow the below steps to change the port no in the apache tomcat :
-    1. Navigate to  <apache-tomcat_HOME>/conf/server.xml
+If you are running the nuxeo server and apache tomcat on the same port (eg: 8080), be sure to change the port that you run apache tomcat..
+Follow the steps below to change the port on which apache tomcat runs:
+    1. Navigate to  <TOMCAT_HOME>/conf/server.xml
                 <Connector port="8080" protocol="HTTP/1.1"
                     connectionTimeout="20000"
                    redirectPort="8443" />
-    2. Navigate to  <apache-tomcat_HOME>/webapps/travelocity.com/WEB-INF/classes/travelocity.properties
+    2. Navigate to the <TOMCAT_HOME>/webapps/travelocity.com/WEB-INF/classes/travelocity.properties file and change the port in the URL of the SAML 2.0 assertion consumer.
                 #The URL of the SAML 2.0 Assertion Consumer
                 SAML2.AssertionConsumerURL=http://localhost:8080/travelocity.com/home.jsp
             
@@ -63,7 +70,7 @@ Follow the below steps to change the port no in the apache tomcat :
 
 ### Configuring the identity provider
 
-Now you have to configure WSO2 Identity Server by [adding a new identity provider](https://docs.wso2.com/display/IS510/Configuring+an+Identity+Provider).
+Follow the steps below to add [a new identity provider](https://docs.wso2.com/display/IS510/Configuring+an+Identity+Provider) via the management console of WSO2 Identity Server..
 
 1. Download the WSO2 Identity Server from [here](https://wso2.com/identity-and-access-management) and [run it](https://docs.wso2.com/display/IS510/Running+the+Product).
 
@@ -241,5 +248,5 @@ For more information, see [Adding Claim Mapping](https://docs.wso2.com/display/I
     
     ![alt text](images/im11.png)
    
-
+Now that you understand how to use Nuxeo as a federated authenticator with WSO2 Identity Server, you can configure the Nuxeo authenticator as required to authenticate Nuxeo users to log in to your organization’s applications.
 
