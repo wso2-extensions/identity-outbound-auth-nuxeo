@@ -25,12 +25,19 @@
         <artifactId>wso2</artifactId>
         <version>1</version>
     </parent>
-    <groupId>org.wso2.carbon.extension.identity.authenticator</groupId>
-    <artifactId>org.wso2.carbon.extension.identity.authenticator.nuxeo</artifactId>
+    <groupId>org.wso2.carbon.identity.authenticator.outbound.nuxeo</groupId>
+    <artifactId>identity-auth-outbound-nuxeo</artifactId>
     <packaging>pom</packaging>
     <version>1.0.0-SNAPSHOT</version>
     <name>WSO2 Carbon Extension - nuxeo Pom</name>
     <url>http://wso2.org</url>
+    <scm>
+        <url>https://github.com/wso2-extensions/identity-outbound-auth-nuxeo.git</url>
+        <developerConnection>scm:git:https://github.com/wso2-extensions/identity-outbound-auth-nuxeo.git
+        </developerConnection>
+        <connection>scm:git:https://github.com/wso2-extensions/identity-outbound-auth-nuxeo.git</connection>
+        <tag>HEAD</tag>
+    </scm>
     <profiles>
         <profile>
             <id>default</id>
@@ -124,17 +131,55 @@
             <version>${wso2.json}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.1.2</version>
-        </dependency>
-        <dependency>
             <groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.3.1.wso2v2</version>
+            <version>${httpcomponents.version}</version>
         </dependency>
     </dependencies>
     <build>
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-ssh</artifactId>
+                <version>${wagon.ssh.version}</version>
+            </extension>
+        </extensions>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <preparationGoals>clean install</preparationGoals>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.jvnet.maven.incrementalbuild</groupId>
+                <artifactId>incremental-build-plugin</artifactId>
+                <version>${incrementalbuild.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>incremental-build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
+        </plugins>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -153,63 +198,118 @@
                 <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-bundle-plugin</artifactId>
-                    <version>2.4.0</version>
+                    <version>${maven.bundle.plugin.version}</version>
                     <extensions>true</extensions>
                     <configuration>
                         <obrRepository>NONE</obrRepository>
-                        <instructions>
-                            <SCM-Revision>${buildNumber}</SCM-Revision>
-                        </instructions>
                     </configuration>
                 </plugin>
                 <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>buildnumber-maven-plugin</artifactId>
-                    <version>${maven.buildnumber.plugin.version}</version>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>${maven.source.plugin.version}</version>
                     <executions>
                         <execution>
-                            <phase>validate</phase>
+                            <id>attach-sources</id>
+                            <phase>verify</phase>
                             <goals>
-                                <goal>create</goal>
+                                <goal>jar-no-fork</goal>
                             </goals>
                         </execution>
                     </executions>
-                    <configuration>
-                        <doCheck>false</doCheck>
-                        <doUpdate>false</doUpdate>
-                    </configuration>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>${maven.assembly.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-project-info-reports-plugin</artifactId>
+                    <version>${maven.plugins.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <configuration>
-                    <preparationGoals>clean install</preparationGoals>
-                    <autoVersionSubmodules>true</autoVersionSubmodules>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <inherited>true</inherited>
-                <configuration>
-                    <encoding>UTF-8</encoding>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>buildnumber-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
     </build>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>wso2.releases</id>
+            <name>WSO2 internal Repository</name>
+            <url>http://maven.wso2.org/nexus/content/repositories/releases/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+                <checksumPolicy>ignore</checksumPolicy>
+            </releases>
+        </pluginRepository>
+        <pluginRepository>
+            <id>wso2.snapshots</id>
+            <name>Apache Snapshot Repository</name>
+            <url>http://maven.wso2.org/nexus/content/repositories/snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </snapshots>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </pluginRepository>
+        <pluginRepository>
+            <id>wso2-nexus</id>
+            <name>WSO2 internal Repository</name>
+            <url>http://maven.wso2.org/nexus/content/groups/wso2-public/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+                <checksumPolicy>ignore</checksumPolicy>
+            </releases>
+        </pluginRepository>
+    </pluginRepositories>
+    <repositories>
+        <repository>
+            <id>wso2-nexus</id>
+            <name>WSO2 internal Repository</name>
+            <url>http://maven.wso2.org/nexus/content/groups/wso2-public/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+                <checksumPolicy>ignore</checksumPolicy>
+            </releases>
+        </repository>
+        <repository>
+            <id>wso2.releases</id>
+            <name>WSO2 internal Repository</name>
+            <url>http://maven.wso2.org/nexus/content/repositories/releases/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+                <checksumPolicy>ignore</checksumPolicy>
+            </releases>
+        </repository>
+        <repository>
+            <id>wso2.snapshots</id>
+            <name>Apache Snapshot Repository</name>
+            <url>http://maven.wso2.org/nexus/content/repositories/snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </snapshots>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+    </repositories>
+    <distributionManagement>
+        <repository>
+            <id>nexus-releases</id>
+            <name>WSO2 Release Distribution Repository</name>
+            <url>http://maven.wso2.org/nexus/service/local/staging/deploy/maven2/</url>
+        </repository>
+        <snapshotRepository>
+            <id>wso2.snapshots</id>
+            <name>Apache Snapshot Repository</name>
+            <url>http://maven.wso2.org/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
     <properties>
         <identity.framework.version>5.11.263</identity.framework.version>
         <carbon.kernel.version>4.4.11</carbon.kernel.version>
@@ -223,5 +323,12 @@
         <org.bouncycastle.version>1.52</org.bouncycastle.version>
         <commons-logging.osgi.version.range>[1.2,2.0)</commons-logging.osgi.version.range>
         <wso2.json>3.0.0.wso2v1</wso2.json>
+        <httpcomponents.version>4.3.1.wso2v2</httpcomponents.version>
+        <wagon.ssh.version>2.1</wagon.ssh.version>
+        <incrementalbuild.version>1.3</incrementalbuild.version>
+        <maven.bundle.plugin.version>2.3.5</maven.bundle.plugin.version>
+        <maven.source.plugin.version>2.1.2</maven.source.plugin.version>
+        <maven.assembly.plugin.version>2.2-beta-2</maven.assembly.plugin.version>
+        <maven.plugins.version>2.4</maven.plugins.version>
     </properties>
 </project>
