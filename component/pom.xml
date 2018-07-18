@@ -63,11 +63,11 @@
                     <instructions>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Private-Package>
-                            org.wso2.carbon.identity.authenticator.outbound.nuxeo.internal
+                            org.wso2.carbon.identity.authenticator.nuxeo.internal
                         </Private-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.authenticator.outbound.nuxeo.internal,
-                            org.wso2.carbon.identity.authenticator.outbound.nuxeo.*
+                            !org.wso2.carbon.identity.authenticator.nuxeo.internal,
+                            org.wso2.carbon.identity.authenticator.*
                         </Export-Package>
                         <Import-Package>
                             org.apache.commons.logging.*; version="${commons-logging.osgi.version.range}",
