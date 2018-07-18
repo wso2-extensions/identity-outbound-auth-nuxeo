@@ -21,17 +21,36 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>org.wso2.carbon.extension.identity.authenticator.nuxeo</artifactId>
-        <groupId>org.wso2.carbon.extension.identity.authenticator</groupId>
+        <artifactId>identity-auth-outbound-nuxeo</artifactId>
+        <groupId>org.wso2.carbon.identity.authenticator.outbound.nuxeo</groupId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
-    <artifactId>org.wso2.carbon.extension.identity.authenticator.nuxeo.connector</artifactId>
+    <artifactId>org.wso2.carbon.identity.authenticator.outbound.nuxeo</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <name>WSO2 Carbon - Authenticator Library For nuxeo</name>
     <url>http://wso2.org</url>
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>maven-bundle-plugin</artifactId>
+                    <version>${maven.bundle.plugin.version}</version>
+                    <extensions>true</extensions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-scr-plugin</artifactId>
@@ -44,11 +63,11 @@
                     <instructions>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Private-Package>
-                            org.wso2.carbon.identity.authenticator.nuxeo.internal
+                            org.wso2.carbon.identity.authenticator.outbound.nuxeo.internal
                         </Private-Package>
                         <Export-Package>
-                            !org.wso2.carbon.identity.authenticator.nuxeo.internal,
-                            org.wso2.carbon.identity.authenticator.*
+                            !org.wso2.carbon.identity.authenticator.outbound.nuxeo.internal,
+                            org.wso2.carbon.identity.authenticator.outbound.nuxeo.*
                         </Export-Package>
                         <Import-Package>
                             org.apache.commons.logging.*; version="${commons-logging.osgi.version.range}",
@@ -58,6 +77,19 @@
                         </Import-Package>
                     </instructions>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-scr-plugin</artifactId>
+                <version>${maven.scr.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>generate-scr-scrdescriptor</id>
+                        <goals>
+                            <goal>scr</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
