@@ -21,10 +21,10 @@
     <parent>
         <artifactId>identity-auth-outbound-nuxeo</artifactId>
         <groupId>org.wso2.carbon.identity.authenticator.outbound.nuxeo</groupId>
-        <version>1.0.0</version>
+        <version>1.0.1-SNAPSHOT</version>
     </parent>
     <artifactId>org.wso2.carbon.identity.authenticator.outbound.nuxeo</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <name>WSO2 Carbon - Authenticator Library For nuxeo</name>
     <url>http://wso2.org</url>

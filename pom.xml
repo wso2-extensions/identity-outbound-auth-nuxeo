@@ -26,7 +26,7 @@
     <groupId>org.wso2.carbon.identity.authenticator.outbound.nuxeo</groupId>
     <artifactId>identity-auth-outbound-nuxeo</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <name>WSO2 Carbon Extension - nuxeo Pom</name>
     <url>http://wso2.org</url>
     <scm>
@@ -34,7 +34,7 @@
         <developerConnection>scm:git:https://github.com/wso2-extensions/identity-outbound-auth-nuxeo.git
         </developerConnection>
         <connection>scm:git:https://github.com/wso2-extensions/identity-outbound-auth-nuxeo.git</connection>
-        <tag>v1.0.0</tag>
+        <tag>HEAD</tag>
     </scm>
     <profiles>
         <profile>
