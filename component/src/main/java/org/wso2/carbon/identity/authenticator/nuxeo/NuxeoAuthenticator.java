@@ -64,7 +64,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class NuxeoAuthenticator extends OpenIDConnectAuthenticator implements FederatedApplicationAuthenticator {
 
-    private static Log log = LogFactory.getLog(NuxeoAuthenticator.class);
+    private static final Log log = LogFactory.getLog(NuxeoAuthenticator.class);
 
     /**
      * Get Nuxeo authorization endpoint.
