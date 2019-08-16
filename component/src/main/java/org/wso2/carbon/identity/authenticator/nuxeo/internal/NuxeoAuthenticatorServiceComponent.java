@@ -37,7 +37,7 @@ import org.wso2.carbon.identity.authenticator.nuxeo.NuxeoAuthenticator;
         immediate = true)
 public class NuxeoAuthenticatorServiceComponent {
 
-    private static Log log = LogFactory.getLog(NuxeoAuthenticatorServiceComponent.class);
+    private static final Log log = LogFactory.getLog(NuxeoAuthenticatorServiceComponent.class);
     private ServiceRegistration registration = null;
 
     /**
