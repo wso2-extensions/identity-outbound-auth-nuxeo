@@ -58,10 +58,15 @@ To download and deploy the travelocity.com sample application,follow the instruc
 ````
 If you are running the nuxeo server and apache tomcat on the same port (eg: 8080), be sure to change the port that you run apache tomcat..
 Follow the steps below to change the port on which apache tomcat runs:
-    1. Navigate to  <TOMCAT_HOME>/conf/server.xml
+    1. Navigate to  <TOMCAT_HOME>/conf/server.xml file and change the values of Connector port,Server port parameters.
+                <Server port="8005" shutdown="SHUTDOWN">
+
                 <Connector port="8080" protocol="HTTP/1.1"
                     connectionTimeout="20000"
                    redirectPort="8443" />
+                   
+                 <Connector port="8009" protocol="AJP/1.3" redirectPort="8443" />
+
     2. Navigate to the <TOMCAT_HOME>/webapps/travelocity.com/WEB-INF/classes/travelocity.properties file and change the port in the URL of the SAML 2.0 assertion consumer.
                 #The URL of the SAML 2.0 Assertion Consumer
                 SAML2.AssertionConsumerURL=http://localhost:8080/travelocity.com/home.jsp

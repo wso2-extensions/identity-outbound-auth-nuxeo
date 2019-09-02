@@ -334,6 +334,7 @@ public class NuxeoAuthenticator extends OpenIDConnectAuthenticator implements Fe
         Iterator parentKey = userInfoInJsonObj.keys();
         String claimsDialectUri = getClaimDialectURI();
         while (parentKey.hasNext()) {
+            String fullClaimURI;
             String eachParentkey = (String) parentKey.next();
             Object parentData = userInfoInJsonObj.get(eachParentkey);
             if (parentData instanceof JSONObject && eachParentkey.equals("properties")) {
@@ -347,32 +348,38 @@ public class NuxeoAuthenticator extends OpenIDConnectAuthenticator implements Fe
                             data.add(((JSONArray) childData).get(i).toString());
                         }
                         String result = data.toString();
-                        claims.put(ClaimMapping.build(claimsDialectUri + eachChildKey,
-                                claimsDialectUri + eachChildKey, null, false), result);
+                        fullClaimURI = buildFullClaimsURI(claimsDialectUri, eachChildKey);
+                        claims.put(ClaimMapping.build(fullClaimURI, fullClaimURI, null, false),
+                                result);
                         if (log.isDebugEnabled()) {
-                            log.debug("Adding claims from the end-point data mapping: " +
-                                    claimsDialectUri + eachChildKey + " - " + result);
+                            log.debug("Adding claims from the end-point data mapping: " + fullClaimURI + " - " +
+                                    result);
                         }
                     } else {
-                        claims.put(ClaimMapping.build(claimsDialectUri + eachChildKey,
-                                claimsDialectUri + eachChildKey, null, false),
+                        fullClaimURI = buildFullClaimsURI(claimsDialectUri, eachChildKey);
+                        claims.put(ClaimMapping.build(fullClaimURI, fullClaimURI, null, false),
                                 childData.toString());
                         if (log.isDebugEnabled()) {
-                            log.debug("Adding claims from the end-point data mapping: " + claimsDialectUri +
-                                    eachParentkey + " - " + childData.toString());
+                            log.debug("Adding claims from the end-point data mapping: " +
+                                    fullClaimURI + " - " + childData.toString());
                         }
                     }
                 }
             } else {
-                claims.put(ClaimMapping.build(claimsDialectUri + eachParentkey,
-                        claimsDialectUri + eachParentkey, null, false),
+                fullClaimURI = buildFullClaimsURI(claimsDialectUri, eachParentkey);
+                claims.put(ClaimMapping.build(fullClaimURI, fullClaimURI, null, false),
                         parentData.toString());
                 if (log.isDebugEnabled()) {
                     log.debug("Adding claims from the end-point data mapping: " +
-                            claimsDialectUri + eachParentkey + " - " + parentData.toString());
+                            fullClaimURI + " - " + parentData.toString());
                 }
             }
         }
         return claims;
+    }
+
+    private String buildFullClaimsURI(String claimsDialectUri, String eachKey) {
+
+        return claimsDialectUri + "/" + eachKey;
     }
 }
