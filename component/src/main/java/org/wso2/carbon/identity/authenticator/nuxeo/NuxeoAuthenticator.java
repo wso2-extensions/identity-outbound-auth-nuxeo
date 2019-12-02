@@ -349,8 +349,7 @@ public class NuxeoAuthenticator extends OpenIDConnectAuthenticator implements Fe
                         }
                         String result = data.toString();
                         fullClaimURI = buildFullClaimsURI(claimsDialectUri, eachChildKey);
-                        claims.put(ClaimMapping.build(fullClaimURI, fullClaimURI, null, false),
-                                result);
+                        claims.put(ClaimMapping.build(fullClaimURI, fullClaimURI, null, false), result);
                         if (log.isDebugEnabled()) {
                             log.debug("Adding claims from the end-point data mapping: " + fullClaimURI + " - " +
                                     result);
@@ -367,11 +366,10 @@ public class NuxeoAuthenticator extends OpenIDConnectAuthenticator implements Fe
                 }
             } else {
                 fullClaimURI = buildFullClaimsURI(claimsDialectUri, eachParentkey);
-                claims.put(ClaimMapping.build(fullClaimURI, fullClaimURI, null, false),
-                        parentData.toString());
+                claims.put(ClaimMapping.build(fullClaimURI, fullClaimURI, null, false), parentData.toString());
                 if (log.isDebugEnabled()) {
-                    log.debug("Adding claims from the end-point data mapping: " +
-                            fullClaimURI + " - " + parentData.toString());
+                    log.debug("Adding claims from the end-point data mapping: " + fullClaimURI + " - "
+                            + parentData.toString());
                 }
             }
         }
