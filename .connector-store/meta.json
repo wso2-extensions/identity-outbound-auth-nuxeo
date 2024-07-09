@@ -2,7 +2,7 @@
     "name": "Nuxeo",
     "owner": "WSO2",
     "category": "Federated authenticator",
-    "documentationUrl": "https://docs.wso2.com/pages/viewpage.action?spaceKey=ISCONNECTORS&title=Nuxeo+Authenticator",
+    "documentationUrl": "https://github.com/wso2-extensions/identity-outbound-auth-nuxeo/tree/master/docs",
     "description": "The Nuxeo authenticator is a federated authenticator that WSO2 Identity Server supports to authenticate Nuxeo users to log in to your organization’s applications. Nuxeo is an open source content management platform that allows architects and developers to build, deploy, and run content-centric business applications.",
     "status": "Active",
     "labels": ["Authenticator"],
