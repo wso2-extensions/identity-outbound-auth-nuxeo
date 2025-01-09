@@ -1,3 +1,8 @@
+# This repository is no longer maintained.
+
+Issue reports and pull requests will not be attended.
+
+
 # identity-outbound-auth-nuxeo
 
 Welcome to the WSO2 Identity Server (IS) Nuxeo authenticator.
